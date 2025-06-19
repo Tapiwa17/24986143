@@ -14,6 +14,11 @@ fontsize: 11pt
 
 This report explores US baby naming trends from 1910–2014 to identify patterns in naming persistence and cultural influences behind sudden name surges. Using the provided datasets and supplementary media data, I investigated how names rise and fall in popularity and what drives those changes.
 
+
+
+
+
+
 # Methodology
 ## I used the following data:
 
@@ -30,8 +35,9 @@ This report explores US baby naming trends from 1910–2014 to identify patterns
  - Name spikes via year-on-year changes.
 
  - Cultural drivers by cross-referencing media influence.
+ 
 
-
+\newpage
 # Results: Spearman Correlation of Top 25 Names
 ```{r}
 knitr::include_graphics("Figures/spearman_name_correlation.png")
@@ -39,11 +45,7 @@ knitr::include_graphics("Figures/spearman_name_correlation.png")
 
 ## Summary:
 
-- We see that both male and female names show strong short-term persistence (especially 1–2 years).
-
-- This persistence tends to weaken slightly over longer time gaps (3+ years), with greater fluctuation   in female names.
-
-- A sharp dip in correlation appears around 1950 for female names, indicating a potential shift in        naming preferences or a broader societal change.
+We can see that both male and female names show strong short-term persistence, particularly over 1–2 years.However, over longer gaps (3+ years), this consistency slightly weakens, with female names showing more fluctuation. Notably, there’s a sharp dip in correlation for female names around 1950, suggesting a possible shift in naming preferences or a broader cultural change during that time.
 
 \newpage
 # Results : Top Name surges over time
@@ -56,32 +58,30 @@ These year-on-year name surges highlight the impact of societal events and media
 ## From the above figure we can uncover several interesting naming insights :
 
 **1. Nevaeh (F)**  
-- Surge Period: Early 2000s  
-- Origin: "Heaven" spelled backward.  
-- Potential cause: This name may have been popularized by Sonny Sandoval (lead singer of group P.O.D.), who named his daughter Nevaeh in 2000 and discussed it on MTV's *Cribs*. Thereafter the name rapidly gained traction as a unique but meaningful name.  
-- Insight: This name illustrates how even personal celebrity moments can influence national naming trends.
+
+The name Nevaeh saw a sharp surge in the early 2000s and by doing some research I can speculate as to why. Navaeh is simply Heaven spelled backwards.Sonny Sandoval, the lead singer of group P.O.D took this clever play on words and named his daughter Nevaeh in 2000. He discussed it on MTV's *Cribs* during the same year. This might be the reason **Navaeh** saw a spike in the early 2000s.
+
+This name illustrates how even personal celebrity moments can influence national naming trends.
 
 **2. Jayceon (M)**  
-- Surge Period: Early to mid-2010s  
-- Potential Cause: This is the birth name of famous West Coast rapper *The Game* (Jayceon Terrell Taylor). He gained popularity in the mid-2000s and remained in the public eye into the 2010s.  
-- Insight: This showcases the power and influence of modern music artists as they can drive adoption of less traditional, unique names — especially within pop/hip-hop.
+
+The name "Jayceon" saw a noticeable rise in the early to mid-2010s, and this was likely linked to the West Coast rapper The Game, real name **Jayceon Terrell Taylor**. He was a major figure in hip-hop since the mid-2000s, and his continued presence in the spotlight made the name more visible. This is a further reflection of how influential music artists can be in shaping trends, inspiring parents, and making uncommon names popular.
 
 **3. Devante (M)**  
-- Surge Period: 1990s  
-- Cause: This name is likely linked to *DeVante Swing*, who was a key member of the influential 90s R&B group *Jodeci*.  
-- Insight: The rise of R&B culture during the 90s strongly influenced naming among urban communities.
+
+The name "DeVante" started gaining traction in the 1990s, and this was likely thanks to DeVante Swing, a standout member of the iconic R&B group Jodeci. With R&B culture booming during that decade, especially in urban communities, names like DeVante carried a sense of style and was even more proof that pop culture and music often leave their mark on baby name trends.
 
 **4. Kiara (F)**  
-- Surge Period: Late 1990s  
-- Cause: This is the name of Simba’s daughter in Disney’s *The Lion King II: Simba’s Pride* (1998).  
-- Insight: Showcases the power of animated films — especially sequels to beloved classics. These films can leave cultural imprints on younger parents thus influencing how they name children.
+
+The name "Kiara" saw a rise in the late 1990s, and this was most probably linked to the Disney film **The Lion King II: Simba’s Pride (1998)**, where Kiara is Simba’s daughter. It being a sequel to a beloved classic led to it resonating with a generation that grew up on the original, showing how animated movies, especially nostalgic ones can shape naming choices and leave lasting cultural footprints.
 
 **5. Desiree (F)**  
-- Surge Period: 1970s–1980s  
-- Cause: This surge was likely media-related, possibly linked to the 1954 movie *Desirée* (featuring Napoleon's lover) or resurgence due to TV or music mentions. 
-- Insight: Shows us that romantic-sounding names tied to fictional or historical characters can resurge decades later.
+The name "Desirée" saw a spike between the 1970s and 1980s, and this was might have been influenced by media references like the 1954 film *Desirée*, which featured Napoleon’s lover, or later mentions in TV or music. It reflects how romantic, elegant names tied to fictional figures can re-emerge long after their original moment. 
 
-We then examined whether these names had links to Billboard chart-topping songs or popular HBO media titles at the time of their spikes.
+
+
+To dig deeper, we explored whether these naming spikes aligned with Billboard hits or major HBO titles during those years.
+
 
 ```{r}
 top_surges_summary <- read.csv("Figures/top_surges_summary.csv")
@@ -90,7 +90,7 @@ knitr::kable(top_surges_summary, caption = "Summary of Top Name Surges and Media
 
 From the above table we can see that : 
 
-- All ten names that experienced the largest year-on-year surges in popularity     had clear associations with mainstream media, either through Billboard chart     hits or HBO shows/movies.
+- All 10 names that experienced the largest year-on-year surges in popularity     had clear associations with mainstream media, either through Billboard         chart hits or HBO shows/movies.
 
 - HBO Link Examples:
 

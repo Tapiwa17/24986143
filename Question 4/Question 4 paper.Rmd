@@ -1,5 +1,5 @@
 ---
-title: 'Billionaires'
+title: 'Question 4: Billionaires'
 author: "Tapiwa Nyamupachitu"
 date: "`r Sys.Date()`"
 output: pdf_document
@@ -9,7 +9,7 @@ fontsize: 11pt
 
 \newpage
 
-# Question 4: Billionaires
+# Billionaires
 
 In this question, I explored wealth accumulation patterns among billionaires across different decades and countries. The dataset provided spans the 1990s, early 2000s, and mid-2010s, offering a rich foundation to investigate shifting trends in how wealth is acquired and inherited.
 
@@ -49,7 +49,9 @@ knitr::include_graphics("Figures/top_self_made_sectors.png")
 This table provides a clearer view of dominant sectors. Notably, Real Estate appears consistently in all decades, while Software, Hedge Funds, and Pharmaceuticals gain prominence only in the 2000s and 2010s. 
 
 This structured evidence shows that while innovation sectors were rising, they had not fully eclipsed traditional wealth-generation paths, especially in the earlier decades.
+
 \newpage
+
 **Conclusion**
 
 My investigation of the Forbes billionaire dataset revealed two compelling trends. Firstly, the U.S. had indeed seen a steady rise in self-made billionaires. By the 2010s, over 40% of U.S. billionaires were not beneficiaries of inherited wealth, marking a clear generational shift toward self-acquired fortunes.

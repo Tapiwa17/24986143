@@ -20,16 +20,16 @@ The visualization below showcases the five most frequent Netflix genres for a se
 knitr::include_graphics("Figures/top_genres_by_country.png")
 ```
 
-Interpretation
-- India exhibits a strong preference for International Movies and     Dramas, suggesting a high consumption of global content.
 
-- The United States emphasizes Dramas, Documentaries, and Comedies,   pointing to demand for both entertainment and informational         content.
+- We can see above that India exhibits a strong preference for International      Movies and Dramas, suggesting a high consumption of global content.
 
-- France and Germany have relatively niche top genres, possibly due   to regional cultural tastes.
+- The United States emphasizes Dramas, Documentaries, and Comedies,   pointing   to demand for both entertainment and informational         content.
 
-- Canada and the UK display more balanced genre distributions,        though Dramas remain consistently popular.
+- France and Germany have relatively niche top genres, possibly due   to         regional cultural tastes.
 
-These variations are useful for tailoring content strategies by region — e.g., investing more in international licensing for India, or original documentaries in the U.S.
+- Canada and the UK display more balanced genre distributions,        though     Dramas remain consistently popular.
+
+These variations are useful fortailoring content strategies by region — e.g., investing more in international licensing for India, or original documentaries in the U.S.
 
 \newpage
 **Identifying how IMDb ratings of Netflix titles vary by country. This helps inform which regions have a catalog of critically acclaimed content and where there may be room for quality improvement**
@@ -47,6 +47,8 @@ Overall, this plot is useful for understanding which countries consistently prod
 
 \newpage
 **Star Power and IMDb Ratings**
+
+
 One hypothesis commonly held in the entertainment industry is that casting star actors can significantly enhance a film's success. To test this, we explored whether the presence of frequently appearing actors in Netflix movies is associated with higher IMDb ratings.
 
 I defined "top actors" as the 50 most frequently appearing actors across Netflix movies in the dataset, based on IMDb credits data. Each movie was flagged based on whether any of these top 50 actors appeared in its cast. We then examined the distribution of IMDb ratings for movies with and without these top actors.
@@ -63,6 +65,7 @@ However, the overlap in distributions suggests that while **star power may contr
 This insight supports the view that top actors add value, but should be part of a **broader quality strategy** rather than a standalone solution.
 
 \newpage
+
 **Text Themes in Content Descriptions**
 
 To better understand the thematic elements that resonate with and attract audiences, I conducted a **text analysis** of the descriptions attached to Netflix titles. I focused on comparing the language used in:
@@ -86,6 +89,7 @@ knitr::include_graphics("Figures/description_word_comparison.png")
 This analysis suggests that word choice in a movie/show’s description may correlate with how audiences perceive its depth or appeal. Streaming platforms might consider optimizing synopsis language to highlight narrative richness and emotional themes.
 
 \newpage
+
 **Movies vs. Series: Which Performs Better?**
 
 To assist our client in deciding whether to prioritize episodic content or films, I compared the IMDb rating distributions of **movies** versus **TV series** available on Netflix.
@@ -97,6 +101,7 @@ knitr::include_graphics("Figures/movie_vs_series_ratings.png")
 The boxplot reveals a notable difference: That is series tend to be rated higher than movies, with a median IMDb score of 7.2 versus 6.4 for movies. Series also exhibit a tighter, more favorable distribution, with fewer low-rated outliers. This suggests that episodic storytelling may provide greater engagement or satisfaction for viewers.This is definitely an insight worth considering when designing content portfolios.
 
 \newpage
+
 **Conclusion**
 
 This analysis explored the key features that drive engagement and perceived quality on Netflix, using IMDb data:

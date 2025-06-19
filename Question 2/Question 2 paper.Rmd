@@ -15,6 +15,7 @@ fontsize: 11pt
 This analysis explores musical trends using Spotify and other music datasets. Specifically, I compared the musical journey and popularity of **Coldplay** and **Metallica**, two globally recognized bands with different stylistic and generational appeal.
 
 The focus includes:
+
 - Popularity distributions across albums
 - Trends in popularity over time
 - Track-level insights to assess consistency and longevity
@@ -22,7 +23,8 @@ The focus includes:
 
 # Data Preparation
 
-We begin by cleaning and preparing the datasets for both bands, ensuring:
+I begin by cleaning and preparing the datasets for both bands. This is to ensure 3 things. These are : 
+
 - Live/demo/remix tracks are excluded
 - Duration is converted from milliseconds to seconds
 - A uniform structure with columns: `name`, `album`, `release_date`, `popularity`, `duration_sec`, `band`
@@ -38,12 +40,15 @@ The first plot visualizes how track popularity is distributed across each band�
 knitr::include_graphics("Figures/popularity_by_album_initial.png")
 ```
 
+
 # Key insights 
 - Coldplay shows tight, consistently high distributions —             particularly in albums from the 2010s onward.
 
 - Metallica’s popularity is more variable, with certain re-releases   achieving sharp spikes.
 
 - Suggests Coldplay's relevance in the streaming era, while           Metallica thrives from legacy hits
+
+\newpage
 
 # The next plot improves interpretability by grouping albums per band and simplifying text formatting:
 ```{r}
@@ -57,6 +62,7 @@ knitr::include_graphics("Figures/popularity_distribution_by_album.png")
 
 - Faceting also helps isolate band-specific patterns without          confusing overlap.
 
+\newpage 
 
 # Popularity trends over time 
 To evaluate each band's musical longevity, I calculated the average popularity score per year of release.
@@ -73,7 +79,7 @@ knitr::include_graphics("Figures/avg_popularity_by_year.png")
 - Coldplay appears more adapted to modern streaming cycles;           Metallica’s peaks are nostalgic.
 
 
-
+\newpage
 ## Track Duration and Tempo Analysis
 
 ### Track Duration Distribution
@@ -104,7 +110,7 @@ knitr::include_graphics("Figures/track_tempo_distribution.png")
 
 - Coldplay shows greater variability in tempo. Some songs fall into   slower ballad territory (under 90 BPM), while others match the     upbeat energy of mainstream pop rock.
 
-
+\newpage
 ### Track Energy Comparison
 
 We compared the distribution of **track energy** between Coldplay and Metallica, using Spotify's energy score (ranging from 0 to 1).
@@ -180,16 +186,8 @@ knitr::kable(summary_data, caption = "Average Audio Feature Values: Coldplay vs 
 ```
 
 
-# Final Reflections
 
-From the visualizations and summary table, we observe notable differences:
 
-- Valence: Coldplay tracks are more positive and uplifting, while    Metallica tends to have darker emotional tones.
+### Closing Remarks 
 
-- Energy & Loudness: Metallica is significantly more energetic and   loud, reflecting its metal genre roots.
-
-- Danceability: Coldplay exhibits slightly higher danceability,      likely due to their incorporation of pop elements in recent        years.
-
-- Tempo & Duration: Both bands show similar tempo ranges, but        Coldplay songs are generally slightly longer in duration.
-
-These differences reveal clear genre influences and help quantify the evolution of musical style over time for each band.
+From the visualizations and summary table, clear differences emerge between Coldplay and Metallica, highlighting how genre influences shape musical style. Coldplay’s tracks tend to be more positive and uplifting, reflected in their higher valence scores, while Metallica leans toward darker emotional tones. Metallica also stands out for its significantly higher energy and loudness levels, aligning with its heavy metal roots. In contrast, Coldplay shows slightly greater danceability, likely due to its evolving incorporation of pop elements in recent years. While both bands share similar tempo ranges, Coldplay’s songs are generally longer in duration. These contrasts not only illustrate the distinct musical identities of the bands but also help quantify their stylistic evolution over time—serving as a creative, data-driven lens through which to appreciate their enduring impact on modern music.
