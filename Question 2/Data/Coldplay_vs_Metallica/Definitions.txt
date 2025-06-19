@@ -1,0 +1,31 @@
+duration: Duration in seconds
+release_date: Album release date
+album_name: Name of CD / album
+explicit: Whether song contains explicit lyrics or not.
+popularity: popularity score (out of 100)
+acousticness: A confidence measure from 0.0 to 1.0 of whether the track is acoustic; acoustic means 'without electrical amplification' – an acoustic guitar versus an electric guitar, for example.
+danceability: Describes how suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity.
+energy: song energy is the sense of forward motion in music, whatever keeps the listener engaged and listening. In loud music, musical energy is easy to identify. We notice the energy more as the drums get busier and play louder, and as the singer sings higher.
+instrumentalness:  Instrumentalness predicts whether a track contains vocals. Instrumentalness is measured on a scale of 0 (likely contains vocal content) to 100 (likely contains no vocal content). Songs with higher instrumentalness are less likely to have vocals
+liveness: Detects the presence of an audience in the recording. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live.
+loudness: LUFS metering is the most accurate way of measuring perceived loudness because it resembles human hearing more closely than other meters. 
+speechiness: Speechiness detects the presence of spoken words in a track. The more exclusively speech-like the recording (e.g. talk show, audio book, poetry), the closer to 1.0 the attribute value. Values above 0.66 describe tracks that are probably made entirely of spoken words.
+tempo: In simple terms, tempo is how fast or slow a piece of music is performed, while rhythm is the placement of sounds in time, in a regular and repeated pattern. Tempo generally is measured as the number of beats per minute, where the beat is the basic measure of time in music.
+valence: Describes the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

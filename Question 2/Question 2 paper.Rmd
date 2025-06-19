@@ -1,0 +1,195 @@
+---
+title: 'Coldplay vs Metallica'
+author: "Tapiwa Nyamupachitu"
+date: "`r Sys.Date()`"
+output: pdf_document
+geometry: margin=1in
+fontsize: 11pt
+
+---
+
+\newpage
+
+# Introduction
+
+This analysis explores musical trends using Spotify and other music datasets. Specifically, I compared the musical journey and popularity of **Coldplay** and **Metallica**, two globally recognized bands with different stylistic and generational appeal.
+
+The focus includes:
+- Popularity distributions across albums
+- Trends in popularity over time
+- Track-level insights to assess consistency and longevity
+
+
+# Data Preparation
+
+We begin by cleaning and preparing the datasets for both bands, ensuring:
+- Live/demo/remix tracks are excluded
+- Duration is converted from milliseconds to seconds
+- A uniform structure with columns: `name`, `album`, `release_date`, `popularity`, `duration_sec`, `band`
+
+All transformations were done using `dplyr`, and the final datasets were merged into a single frame for comparison.
+
+
+# Distribution of Popularity by Album
+
+The first plot visualizes how track popularity is distributed across each band’s albums. This helps identify standout releases and assess consistency within albums.
+
+```{r album-popularity-image, echo=FALSE, out.width="95%", fig.cap="Spotify popularity scores across albums for each band"}
+knitr::include_graphics("Figures/popularity_by_album_initial.png")
+```
+
+# Key insights 
+- Coldplay shows tight, consistently high distributions —             particularly in albums from the 2010s onward.
+
+- Metallica’s popularity is more variable, with certain re-releases   achieving sharp spikes.
+
+- Suggests Coldplay's relevance in the streaming era, while           Metallica thrives from legacy hits
+
+# The next plot improves interpretability by grouping albums per band and simplifying text formatting:
+```{r}
+knitr::include_graphics("Figures/popularity_distribution_by_album.png")
+```
+
+# Additional Insights
+- For Coldplay, the uniformity in boxplots across albums highlights   consistent production of broadly appealing songs.
+
+- For Metallica, albums like Metallica (Remastered) show wide         variability — suggesting a few standout tracks dominate streaming.
+
+- Faceting also helps isolate band-specific patterns without          confusing overlap.
+
+
+# Popularity trends over time 
+To evaluate each band's musical longevity, I calculated the average popularity score per year of release.
+
+```{r}
+knitr::include_graphics("Figures/avg_popularity_by_year.png")
+```
+
+# Key Insights
+- Coldplay’s popularity has remained stable post-2008, reflecting     consistent success in new releases.
+
+- Metallica shows sporadic, almost random surges, often aligned with anniversary     reissues or cultural rediscovery.
+
+- Coldplay appears more adapted to modern streaming cycles;           Metallica’s peaks are nostalgic.
+
+
+
+## Track Duration and Tempo Analysis
+
+### Track Duration Distribution
+
+This figure compares the distribution of track durations (in seconds) for Coldplay and Metallica. It helps us understand the typical length of songs produced by each band.
+
+```{r fig.align="center", echo=FALSE, out.width="80%"}
+knitr::include_graphics("Figures/track_duration_distribution.png")
+```
+
+# Insights:
+
+- Metallica's songs generally span a wider range and lean toward      longer durations, with some tracks well above 400 seconds. This     aligns with the band's progressive metal style and extended         instrumental sections.
+
+- Coldplay tends to produce songs with more consistent,               radio-friendly lengths, often clustering around 230–250 seconds.
+
+\newpage
+# Track Tempo Distribution
+Another important characteristic we examined was the **tempo** (measured in BPM).
+This density plot compares the tempo (in beats per minute) of tracks by each band.
+```{r}
+knitr::include_graphics("Figures/track_tempo_distribution.png")
+```
+
+# Insights:
+
+- Metallica songs often cluster around higher tempo ranges (100–140   BPM), consistent with their aggressive and energetic sound.
+
+- Coldplay shows greater variability in tempo. Some songs fall into   slower ballad territory (under 90 BPM), while others match the     upbeat energy of mainstream pop rock.
+
+
+### Track Energy Comparison
+
+We compared the distribution of **track energy** between Coldplay and Metallica, using Spotify's energy score (ranging from 0 to 1).
+
+- Metallica tracks generally exhibit **higher energy**, consistent with their heavier musical style.
+- Coldplay's energy scores tend to be lower on average, reflecting a more mellow or ambient style.
+
+This contrast is clearly visible in the density plot below:
+
+```{r, echo=FALSE, out.width="80%"}
+knitr::include_graphics("Figures/track_energy_distribution.png")
+```
+
+\newpage
+# Valence Distribution
+Valence describes the musical positivity conveyed by a track — a higher value means the song sounds more cheerful or happy, while a lower value suggests sadness, tension, or anger.
+
+The valence score in Spotify data quantifies the emotional positivity of a track, ranging from 0 (very negative or sad) to 1 (highly positive or cheerful). This helped me to assess whether Coldplay or Metallica tends to produce more emotionally uplifting music.
+
+```{r}
+knitr::include_graphics("Figures/track_valence_distribution.png")
+```
+
+# Interpretation : 
+
+- Coldplay generally scores higher on valence, with a denser         concentration of songs in the higher positivity range (e.g.,       0.6–0.9). This aligns with their reputation for uplifting,         melodic, and emotionally resonant pop-rock tracks.
+
+- Metallica, on the other hand, has a broader distribution skewed    toward lower valence scores. This reflects their heavier, darker,   and more aggressive musical tone, typical of the metal genre.
+
+This figure simply shows us that Coldplay’s musical identity leans toward emotional optimism, while Metallica gravitates to intensity and depth. These emotional profiles not only differentiate the bands stylistically but also reflect how they connect with different audiences across time.
+
+\newpage
+# Distribution of Track Danceability
+I compared how "danceable" the music of Coldplay and Metallica is, based on Spotify's audio features. Danceability is a numerical measure (0–1) of how suitable a track is for dancing, based on tempo, rhythm stability, beat strength, and regularity.
+
+```{r}
+knitr::include_graphics("Figures/track_danceability_distribution.png")
+```
+
+# Key Insights:
+
+- Coldplay tracks generally show higher danceability scores,         clustering more tightly toward the upper end of the scale.
+
+- Metallica on the other hand exhibits a broader, flatter            distribution, indicating a more varied range in danceability —     likely due to their heavier, more complex musical style.
+
+This difference suggests that Coldplay’s music may be more aligned with pop and electronic influences, while Metallica’s catalog features styles less oriented toward rhythmic danceability.
+
+
+### Distribution of Track Loudness
+
+Loudness refers to the overall decibel level of a track. Metal tracks are typically more compressed and louder, while pop and ambient music might have a wider dynamic range.
+
+```{r track_loudness_plot, echo=FALSE, message=FALSE, warning=FALSE}
+knitr::include_graphics("Figures/track_loudness_distribution.png")
+```
+
+# Key Insights:
+- Metallica shows a clearly louder profile, with most tracks         peaking between -4 dB and -6 dB.
+
+- Coldplay spans a wider range of loudness values, with many songs   being softer (around -9 dB).
+
+This aligns with the genre difference — Metallica's heavier sound benefits from high compression, while Coldplay balances dynamics and melody.
+
+\newpage
+
+## Summary of Audio Features by Band
+
+The table below compares average values of key Spotify audio features for each band.
+
+```{r audio_feature_summary, echo=FALSE}
+summary_data <- read.csv("Figures/audio_feature_summary.csv")
+knitr::kable(summary_data, caption = "Average Audio Feature Values: Coldplay vs Metallica")
+```
+
+
+# Final Reflections
+
+From the visualizations and summary table, we observe notable differences:
+
+- Valence: Coldplay tracks are more positive and uplifting, while    Metallica tends to have darker emotional tones.
+
+- Energy & Loudness: Metallica is significantly more energetic and   loud, reflecting its metal genre roots.
+
+- Danceability: Coldplay exhibits slightly higher danceability,      likely due to their incorporation of pop elements in recent        years.
+
+- Tempo & Duration: Both bands show similar tempo ranges, but        Coldplay songs are generally slightly longer in duration.
+
+These differences reveal clear genre influences and help quantify the evolution of musical style over time for each band.

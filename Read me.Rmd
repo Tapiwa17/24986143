@@ -1,0 +1,837 @@
+---
+title: "# README for Data Science Exam"
+author: "Tapiwa-24986143"
+date: "2025-06-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## General Notes
+This project follows a functional programming approach. Each question is in its own folder with associated code/scripts and outputs saved separately. 
+
+Question 1 – Name Surges & Cultural Influence
+Objective:
+Identifying names with the largest year-on-year increases and explore whether these spikes correlate with pop culture trends using Billboard and HBO datasets.
+
+Data Loading & Preparation
+```{r}
+# Load the datasets 
+Baby_Names <- read_rds("data/US_Baby_names/Baby_Names_By_US_State.rds")
+Top_100_Billboard <- read_rds("data/US_Baby_names/charts.rds")
+HBO_titles <- read_rds("data/US_Baby_names/HBO_titles.rds")
+HBO_credits <- read_rds("data/US_Baby_names/HBO_credits.rds")
+
+glimpse(Baby_Names)
+
+# Extracting top 25 names per year and gender across all states
+top_25_names <- Baby_Names %>%
+  group_by(Year, Gender, Name) %>%
+  summarise(Total = sum(Count), .groups = "drop") %>%
+  group_by(Year, Gender) %>%
+  slice_max(order_by = Total, n = 25) %>%
+  mutate(Rank = rank(-Total)) %>%
+  select(Year, Gender, Name, Rank)
+```
+
+Surge Identification
+- Grouped by name, gender, and year to calculate total baby counts.
+  Calculated year-on-year (YoY) change for each name.
+  Selected the top 10 surging names based on highest YoY % increase.
+
+- Rank correlations
+  A plot was created to assess whether popular names persist across years.
+  This was done by generating a heatmap of rank correlations to compare the top 25 boys' and girls' names in each year with those in the following 3 years.
+
+```{r}
+# Function to get spearman correlations between current year and year +1/2/3
+get_spearman_for_year <- function(y, g) {
+  base_year <- top_25_names %>% 
+    filter(Year == y, Gender == g)
+  
+  result <- tibble()
+  
+  for (offset in 1:3) {
+    compare_year <- top_25_names %>%
+      filter(Year == y + offset, Gender == g)
+    
+    # Join on Name to keep only common names
+    joined <- inner_join(base_year, compare_year, by = "Name", suffix = c("_base", "_comp"))
+    
+    if (nrow(joined) >= 5) {
+      rho <- cor(joined$Rank_base, joined$Rank_comp, method = "spearman")
+    } else {
+      rho <- NA
+    }
+    
+    result <- bind_rows(result, tibble(
+      Year = y,
+      Gender = g,
+      Offset = offset,
+      Future_Year = y + offset,
+      Spearman = rho
+    ))
+  }
+  
+  return(result)
+}
+
+# Now we apply across all years
+years <- unique(top_25_names$Year)
+genders <- unique(top_25_names$Gender)
+
+# Apply function to all (year, gender) pairs
+correlation_results <- map_dfr(years, function(y) {
+  map_dfr(genders, function(g) {
+    get_spearman_for_year(y, g)
+  })
+})
+```
+
+Visualization
+```{r}
+ggplot(correlation_results, aes(x = Year, y = Spearman, color = as.factor(Offset))) +
+  geom_line() +
+  facet_wrap(~Gender) +
+  labs(
+    title = "Spearman Rank Correlation of Top 25 Baby Names Over Time",
+    subtitle = "Correlation between each year's rankings and the next 3 years",
+    x = "Base Year",
+    y = "Spearman Correlation",
+    color = "Years Ahead"
+  ) +
+  theme_minimal()
+
+ggsave("Figures/spearman_name_correlation.png", width = 10, height = 6)
+```
+
+Finding insights on surges : 
+- Summarizing total counts per name, year, and gender
+```{r}
+name_trends <- Baby_Names %>%
+  group_by(Name, Year, Gender) %>%
+  summarise(Total = sum(Count), .groups = "drop") %>%
+  arrange(Name, Gender, Year)
+```
+
+- Calculating year-on-year percentage change
+```{r}
+name_trends <- name_trends %>%
+  group_by(Name, Gender) %>%
+  mutate(YoY_change = 100 * (Total - lag(Total)) / lag(Total)) %>%
+  ungroup()
+```
+
+- Top 10 surges by % increase (removing very low baselines)
+```{r}
+top_surges <- name_trends %>%
+  filter(!is.na(YoY_change), lag(Total) >= 50) %>%
+  arrange(desc(YoY_change)) %>%
+  slice_head(n = 10)
+```
+
+\newpage
+
+Visualizing the surges
+```{r}
+ggplot(top_surges, aes(x = Year, y = Total, color = Name)) +
+  geom_line() +
+  facet_wrap(~ Name + Gender, scales = "free_y") +
+  labs(title = "Top Name Surges Over Time",
+       y = "Total Babies Given Name",
+       x = "Year") +
+  theme_minimal()
+
+ggsave("Figures/top_name_surges.png", width = 10, height = 6)
+```
+
+\newpage
+
+Adding Billboard and HBO links to top_surges data: 
+- Adding Billboard matches
+```{r}
+top_surges <- top_surges %>%
+  rowwise() %>%
+  mutate(
+    Billboard_Song_Match = any(str_detect(Top_100_Billboard$song, regex(Name, ignore_case = TRUE))),
+    Billboard_Artist_Match = any(str_detect(Top_100_Billboard$artist, regex(Name, ignore_case = TRUE)))
+  ) %>%
+  ungroup()
+```
+
+Join HBO credits and titles
+```{r}
+hbo_data <- HBO_credits %>%
+  left_join(HBO_titles, by = "id")
+```
+
+Add HBO matches
+```{r}
+top_surges <- top_surges %>%
+  rowwise() %>%
+  mutate(
+    HBO_Name_Match = any(str_detect(hbo_data$name, regex(Name, ignore_case = TRUE))),
+    HBO_Character_Match = any(str_detect(hbo_data$character, regex(Name, ignore_case = TRUE)))
+  ) %>%
+  ungroup()
+
+colnames(top_surges)
+
+top_surges_summary <- top_surges %>%
+  mutate(
+    Billboard_Link = if_else(
+      is.na(Billboard_Song_Match) & is.na(Billboard_Artist_Match),
+      FALSE,
+      TRUE
+    ),
+    HBO_Link = if_else(
+      is.na(HBO_Name_Match) & is.na(HBO_Character_Match),
+      FALSE,
+      TRUE
+    )
+  ) %>%
+  select(Name, Gender, Year, YoY_change, Billboard_Link, HBO_Link)
+```
+
+View and save Table
+```{r}
+top_surges_summary
+write.csv(top_surges_summary, "Figures/top_surges_summary.csv", row.names = FALSE)
+```
+
+\newpage
+
+Question 2 : Coldplay vs Metallica
+This analysis explores musical trends using Spotify and other music datasets. Specifically, I compared the musical journey and popularity of Coldplay and Metallica, two globally recognized bands with different stylistic and generational appeal.
+
+Data Loading
+```{r}
+coldplay <- read_csv("data/Coldplay_vs_Metallica/Coldplay.csv")
+metallica <- read_csv("data/Coldplay_vs_Metallica/metallica.csv")
+spotify_trends <- read_rds("data/Coldplay_vs_Metallica/Broader_Spotify_Info.rds")
+billboard_100 <- read_rds("data/Coldplay_vs_Metallica/charts.rds")
+```
+
+Data Cleaning and Harmonization
+```{r}
+coldplay_clean <- coldplay %>%
+  select(
+    name,
+    album = album_name,
+    release_date,
+    popularity,
+    duration = duration,      # assuming already in seconds
+    energy,
+    tempo,
+    valence,
+    danceability,
+    acousticness,
+    liveness,
+    speechiness,
+    loudness
+  ) %>%
+  mutate(band = "Coldplay")
+# Clean Metallica
+metallica_clean <- metallica %>%
+  select(
+    name,
+    album,
+    release_date,
+    popularity,
+    duration_ms,
+    energy,
+    tempo,
+    valence,
+    danceability,
+    acousticness,
+    liveness,
+    speechiness,
+    loudness
+  ) %>%
+  # Convert duration_ms safely
+  mutate(
+    duration_sec = duration_ms / 1000,
+    band = "Metallica"
+  )
+```
+
+Combine data
+```{r}
+combined_bands <- bind_rows(coldplay_clean, metallica_clean)
+combined_bands <- combined_bands %>%
+  mutate(album_clean = stri_replace_all_regex(album, "[^\x20-\x7E]", "")) %>%  # Remove non-ASCII characters
+  mutate(album_wrapped = str_wrap(album_clean, width = 20))
+
+```
+
+Exploratory Visualization
+```{r}
+ggplot(combined_bands, aes(x = reorder(album_wrapped, popularity, median), y = popularity, fill = band)) +
+  geom_boxplot() +
+  coord_flip() +
+  facet_grid(band ~ .) +
+  labs(
+    title = "Popularity Distribution by Album",
+    subtitle = "Spotify Popularity Scores for Coldplay and Metallica",
+    x = "Album",
+    y = "Popularity Score"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.y = element_text(size = 9),
+    strip.text = element_text(face = "bold", size = 12),
+    plot.title = element_text(face = "bold", size = 14),
+    legend.position = "none"
+  )
+
+ggsave("Figures/popularity_by_album_initial.png", width = 10, height = 6, dpi = 300)
+
+```
+
+We can get more meaningful figures if we simplify album names
+```{r}
+library(stringi)
+
+combined_bands <- combined_bands %>%
+  mutate(album_clean = stri_replace_all_regex(album, "[^\x20-\x7E]", "")) %>%
+  mutate(album_short = str_trunc(album_clean, 25, side = "right"))
+
+# Plot
+ggplot(combined_bands, aes(x = popularity, y = reorder(album_short, popularity), fill = band)) +
+  geom_boxplot(outlier.size = 0.5) +
+  facet_wrap(~band, scales = "free_y") +
+  labs(
+    title = "Popularity Distribution by Album",
+    subtitle = "Spotify Popularity Scores for Coldplay and Metallica",
+    x = "Popularity Score",
+    y = "Album"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.y = element_text(size = 8),
+    strip.text = element_text(size = 12, face = "bold"),
+    legend.position = "bottom"
+  )
+ggsave("Figures/popularity_distribution_by_album.png", width = 12, height = 8)
+```
+
+\newpage
+
+Looking at longegivity 
+```{r}
+# Average popularity by year
+library(dplyr)
+library(ggplot2)
+
+band_trends <- bind_rows(coldplay_clean, metallica_clean) %>%
+  mutate(year = lubridate::year(release_date)) %>%
+  group_by(band, year) %>%
+  summarise(avg_popularity = mean(popularity, na.rm = TRUE), .groups = "drop")
+
+# Plot it
+ggplot(band_trends, aes(x = year, y = avg_popularity, color = band)) +
+  geom_line(size = 1.2) +
+  labs(
+    title = "Average Song Popularity Over Time",
+    subtitle = "Trend in Spotify Popularity for Coldplay and Metallica",
+    x = "Release Year",
+    y = "Average Popularity Score",
+    color = "Band"
+  ) +
+  theme_minimal(base_size = 13)
+
+ggsave("Figures/avg_popularity_by_year.png", width = 10, height = 6)
+
+```
+
+Comparing track duration and tempo between the 2 bands
+```{r}
+# Duration in seconds was already created as duration_sec
+# Density plot: Track Duration
+ggplot(combined_bands, aes(x = duration_sec, fill = band)) +
+  geom_density(alpha = 0.5) +
+  labs(
+    title = "Distribution of Track Duration",
+    x = "Duration (seconds)",
+    y = "Density",
+    fill = "Band"
+  ) +
+  theme_minimal()
+
+# Save the plot
+ggsave("Figures/track_duration_distribution.png", width = 8, height = 5)
+```
+
+Density plot: Tempo
+```{r}
+ggplot(combined_bands, aes(x = tempo, fill = band)) +
+  geom_density(alpha = 0.5) +
+  labs(
+    title = "Distribution of Track Tempo",
+    x = "Tempo (BPM)",
+    y = "Density",
+    fill = "Band"
+  ) +
+  theme_minimal()
+
+# Save the plot
+ggsave("Figures/track_tempo_distribution.png", width = 8, height = 5)
+```
+
+Next Metric : Energy
+Plot energy distribution
+```{r}
+ggplot(combined_bands, aes(x = energy, fill = band)) +
+  geom_density(alpha = 0.5) +
+  labs(
+    title = "Distribution of Track Energy",
+    subtitle = "Comparison of Coldplay and Metallica",
+    x = "Energy",
+    y = "Density",
+    fill = "Band"
+  ) +
+  theme_minimal()
+
+# Save the plot
+ggsave("Figures/track_energy_distribution.png", width = 8, height = 5)
+```
+
+Valence distribution
+Plot valence distribution
+```{r}
+ggplot(combined_bands, aes(x = valence, fill = band)) +
+  geom_density(alpha = 0.5) +
+  labs(
+    title = "Distribution of Track Valence",
+    subtitle = "Comparison of Emotional Positivity in Coldplay and Metallica Tracks",
+    x = "Valence (Emotional Positivity)",
+    y = "Density",
+    fill = "Band"
+  ) +
+  theme_minimal()
+
+# Save the plot
+ggsave("Figures/track_valence_distribution.png", width = 8, height = 6)
+```
+
+Plot danceability
+```{r}
+colnames(combined_bands)
+ggplot(combined_bands, aes(x = danceability, fill = band)) +
+  geom_density(alpha = 0.5) +
+  labs(
+    title = "Distribution of Track Danceability",
+    subtitle = "Comparison of Coldplay and Metallica",
+    x = "Danceability",
+    y = "Density",
+    fill = "Band"
+  ) +
+  theme_minimal()
+
+ggsave("Figures/track_danceability_distribution.png", width = 8, height = 5)
+```
+
+Plot Loudness Distribution
+```{r}
+ggplot(combined_bands, aes(x = loudness, fill = band)) +
+  geom_density(alpha = 0.5) +
+  labs(
+    title = "Distribution of Track Loudness",
+    subtitle = "Comparison of Coldplay and Metallica",
+    x = "Loudness (dB)",
+    y = "Density",
+    fill = "Band"
+  ) +
+  theme_minimal()
+
+# Save plot
+ggsave("Figures/track_loudness_distribution.png", width = 10, height = 6)
+```
+
+Summary key audio features per band
+```{r}
+feature_summary <- combined_bands %>%
+  group_by(band) %>%
+  summarise(
+    avg_valence = mean(valence, na.rm = TRUE),
+    avg_energy = mean(energy, na.rm = TRUE),
+    avg_tempo = mean(tempo, na.rm = TRUE),
+    avg_danceability = mean(danceability, na.rm = TRUE),
+    avg_loudness = mean(loudness, na.rm = TRUE),
+    avg_duration_sec = mean(duration_sec, na.rm = TRUE)
+  )
+```
+
+Save the table
+```{r}
+write.csv(feature_summary, "Figures/audio_feature_summary.csv", row.names = FALSE)
+```
+
+\newpage
+
+# Question 3: Netflix Content Analysis
+
+This analysis investigates what content succeeds on Netflix, using metadata from IMDb and Netflix’s public catalog. The goal is to guide a new streaming startup by identifying the genres, themes, and formats most associated with highly-rated content.
+
+---
+
+## Files
+
+- **Data/**: Raw input files (`titles.rds`, `credits.rds`, `netflix_movies.csv`)
+- **Figures/**: All plots saved from the analysis
+- **Question 3 paper.Rmd**: Full write-up with visual interpretation and citations
+
+---
+
+## Setup and Packages
+```{r}
+library(tidyverse)
+library(lubridate)
+library(stringr)
+library(tidytext)
+library(tidyr)
+```
+
+1) Data Cleaning and Structuring
+I began by loading and cleaning the data:
+```{r}
+titles <- read_rds("Question 3/Data/netflix/titles.rds")
+credits <- read_rds("Question 3/Data/netflix/credits.rds")
+movie_info <- read_csv("Question 3/Data/netflix/netflix_movies.csv")
+```
+
+Cleaning and Structuring
+```{r}
+titles_clean <- titles %>%
+  mutate(
+    genres = str_replace_all(genres, "\\[|\\]|'", ""),
+    genres = str_split(genres, ",\\s*"),
+    country = str_replace_all(production_countries, "\\[|\\]|'", ""),
+    country = str_split(country, ",\\s*"),
+    release_decade = floor(release_year / 10) * 10
+  )
+
+movie_info_clean <- movie_info %>%
+  mutate(
+    duration_min = as.numeric(str_extract(duration, "\\d+")),
+    listed_in = str_split(listed_in, ",\\s*")
+  )
+```
+
+2) Most Common Genres by Country
+I looked at the most frequent genres in Netflix content across the top six contributing countries.
+```{r}
+top_countries <- movie_info_clean %>%
+  filter(!is.na(country)) %>%
+  separate_rows(country, sep = ",\\s*") %>%
+  count(country, sort = TRUE) %>%
+  slice_max(n, n = 6) %>%
+  pull(country)
+
+genre_country <- movie_info_clean %>%
+  filter(!is.na(country), !is.na(listed_in)) %>%
+  separate_rows(country, sep = ",\\s*") %>%
+  filter(country %in% top_countries) %>%
+  unnest(listed_in) %>%
+  count(country, listed_in, sort = TRUE) %>%
+  group_by(country) %>%
+  slice_max(n, n = 5) %>%
+  ungroup()
+```
+
+3) IMDb Ratings by Country
+We assessed how average ratings vary across countries.
+```{r}
+ratings_summary <- titles_clean %>%
+  unnest(production_countries) %>%
+  filter(!is.na(tmdb_score)) %>%
+  mutate(production_countries = str_remove_all(production_countries, "\\[|\\]|'|\"")) %>%
+  group_by(production_countries) %>%
+  summarise(
+    avg_rating = mean(tmdb_score, na.rm = TRUE),
+    n_titles = n()
+  ) %>%
+  filter(n_titles >= 20) %>%
+  arrange(desc(avg_rating))
+```
+
+4) Star Power Impact
+I tested whether movies featuring top actors received better ratings.
+```{r}
+netflix_data <- left_join(titles, credits, by = "id")
+
+top_actors <- netflix_data %>%
+  filter(toupper(role) == "ACTOR") %>%
+  count(name, sort = TRUE) %>%
+  slice_max(n, n = 50)
+
+actor_data <- netflix_data %>%
+  filter(toupper(role) == "ACTOR") %>%
+  mutate(top_actor = name %in% top_actors$name)
+
+movie_level_data <- actor_data %>%
+  group_by(id, imdb_score) %>%
+  summarise(any_top_actor = any(top_actor), .groups = "drop")
+```
+
+5) Text Analysis of Descriptions
+I compared language used in high-rated vs. low-rated descriptions.
+```{r}
+desc_data <- titles %>%
+  filter(!is.na(description), !is.na(imdb_score)) %>%
+  mutate(
+    rating_group = case_when(
+      imdb_score >= 7.5 ~ "High-rated",
+      imdb_score <= 5 ~ "Low-rated",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  filter(!is.na(rating_group))
+
+word_tokens <- desc_data %>%
+  unnest_tokens(word, description) %>%
+  anti_join(stop_words, by = "word") %>%
+  filter(str_detect(word, "^[a-z']+$"))
+
+word_counts <- word_tokens %>%
+  count(rating_group, word, sort = TRUE) %>%
+  group_by(rating_group) %>%
+  slice_max(n, n = 15)
+```
+
+6) Movies vs. Series: Which Rates Higher?
+Finally I compared IMDb ratings between TV series and movies
+```{r}
+type_comparison <- titles %>%
+  filter(type %in% c("MOVIE", "SHOW"), !is.na(imdb_score)) %>%
+  mutate(type = factor(type, levels = c("MOVIE", "SHOW")))
+
+type_comparison %>%
+  group_by(type) %>%
+  summarise(
+    avg_rating = mean(imdb_score, na.rm = TRUE),
+    median_rating = median(imdb_score, na.rm = TRUE),
+    count = n()
+  )
+```
+
+\newpage
+## Question 4: Billionaires
+
+This question explored the validity of two claims made during a Forbes panel on global billionaires:
+1. The rise of self-made billionaires in the United States.
+2. The shift in dominant sectors producing these billionaires.
+
+# Load the libraries 
+```{r}
+library(readr)
+library(readxl)
+library(dplyr)
+library(purrr)
+library(stringr)
+library(tidyr)
+library(ggplot2)
+library(knitr)
+library(gt)
+```
+
+# Load the data
+```{r}
+billionaires <- read_csv("Question 4/Data/Billions/billionaires.csv")
+glimpse(billionaires)
+```
+
+# Cleaning and preparing the data
+```{r}
+billionaires_clean <- billionaires %>%
+  filter(!is.na(year), !is.na(location.citizenship)) %>%
+  mutate(
+    decade = paste0(floor(year / 10) * 10, "s"),
+    company.relationship = str_to_lower(company.relationship),
+    company.sector = str_to_title(company.sector),
+    country = str_to_upper(location.citizenship)
+  )
+```
+
+# Evaluating Claim 1 :
+I examined inheritence types over decades in the United states 
+```{r}
+us_inheritance_trends <- billionaires_clean %>%
+  filter(country == "UNITED STATES") %>%
+  group_by(decade, wealth.how.inherited) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  mutate(share = round(n / sum(n), 2))
+```
+
+Plotting and saving the results 
+```{r}
+ggplot(us_inheritance_trends, aes(x = decade, y = share, fill = wealth.how.inherited)) +
+  geom_col() +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "US Billionaires by Inheritance Type Across Decades",
+    x = "Decade",
+    y = "Proportion of Billionaires",
+    fill = "Inheritance Status"
+  ) +
+  theme_minimal()
+
+ggsave("Question 4/Figures/us_billionaire_inheritance_by_decade.png", 
+       width = 10, height = 6, dpi = 300)
+```
+
+# Claim 2 : Shift in Sectors of Self-Made Billionaires 
+First identify the top sectors and group all others as "other"
+```{r}
+top_sectors <- billionaires_clean %>%
+  filter(wealth.how.inherited == "not inherited") %>%
+  count(company.sector, sort = TRUE) %>%
+  slice_head(n = 8) %>%
+  pull(company.sector)
+
+billionaires_clean <- billionaires_clean %>%
+  mutate(
+    simplified_sector = ifelse(company.sector %in% top_sectors, company.sector, "Other")
+  )
+```
+
+Then, visualize sector trends by decade and save :
+```{r}
+selfmade_sector_trends <- billionaires_clean %>%
+  filter(wealth.how.inherited == "not inherited") %>%
+  group_by(decade, simplified_sector) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(decade) %>%
+  mutate(share = n / sum(n))
+
+ggplot(selfmade_sector_trends, aes(x = decade, y = share, fill = simplified_sector)) +
+  geom_col(position = "fill") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    title = "Main Sectors of Self-Made Billionaires Across Decades",
+    x = "Decade",
+    y = "Proportion of Self-Made Billionaires",
+    fill = "Sector"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size = 9), legend.position = "bottom")
+
+ggsave("Question 4/Figures/self_made_sectors_by_decade.png", 
+       width = 10, height = 6, dpi = 300)
+```
+
+I also present a table summarizing the top company sectors for self-made billionaires per decade and save it : 
+```{r}
+top_sectors_table <- billionaires_clean %>%
+  filter(
+    wealth.how.inherited == "not inherited",
+    !is.na(company.sector)
+  ) %>%
+  group_by(decade, company.sector) %>%
+  summarise(count = n(), .groups = "drop") %>%
+  group_by(decade) %>%
+  slice_max(order_by = count, n = 5, with_ties = FALSE) %>%
+  ungroup() %>%
+  pivot_wider(names_from = decade, values_from = count, values_fill = 0)
+
+top_sectors_table %>%
+  gt() %>%
+  tab_header(
+    title = "Split of Top Company Sectors for Self-Made Billionaires by Decade"
+  ) %>%
+  gtsave("Question 4/Figures/top_self_made_sectors_fixed.png")
+```
+
+\newpage
+# Question 5 : Weight and Lifestyle Factors
+In this final analysis, the goal was to derive simple, practical public health insights from a health dataset. The focus was on how sleep, physical activity, and stress levels relate to final body weight.
+
+I explored the data visually and statistically to support a concise presentation suitable for a TV audience.
+
+Loading required libraries 
+```{r}
+library(readr)
+library(readxl)
+library(dplyr)
+library(purrr)
+library(stringr)
+library(tidyr)
+library(ggplot2)
+```
+
+Loading the dataset 
+```{r}
+health <- read_csv("Question 5/Data/Health/HealthCare.csv")
+glimpse(health)
+```
+
+Sleep and Activity vs Final Weight
+I used a boxplot to visualize how sleep quality and physical activity level jointly relate to final weight.
+```{r}
+ggplot(health, aes(x = `Sleep Quality`, y = `Final Weight (lbs)`, fill = `Physical Activity Level`)) +
+  geom_boxplot() +
+  labs(
+    title = "Final Weight by Sleep Quality and Activity Level",
+    x = "Sleep Quality", y = "Final Weight (lbs)", fill = "Activity Level"
+  ) +
+  theme_minimal()
+ggsave("Question 5/Figures/final_weight_by_sleep_and_activity.png",
+       width = 10, height = 6, dpi = 300)
+```
+
+\newpage
+Stress and Weight Across Activity Levels
+I tested whether stress levels impact final weight beyond activity and sleep, To show this I created a jitter plot with a regression line.
+Loading and exploring the data 
+```{r}
+ggplot(health, aes(x = `Stress Level`, y = `Final Weight (lbs)`)) +
+  geom_jitter(aes(color = `Physical Activity Level`), width = 0.3, alpha = 0.7, size = 2) +
+  geom_smooth(method = "lm", se = TRUE, color = "black", linetype = "dashed") +
+  labs(
+    title = "Impact of Stress and Activity on Final Weight",
+    subtitle = "Stress level vs final weight across different activity levels", 
+    x = "Stress Level (1 = Low, 10 = High",
+    y = "Final Weight (lbs)",
+    color = "Activity Level"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(face = "bold"),
+    plot.subtitle = element_text(margin = margin(b = 10))
+  )
+
+ggsave("Question 5/Figures/Impact of Stress and Activity on Final Weight.png",
+       width = 10, height = 6, dpi = 300)
+```
+
+Linear Regression Model
+I modeled Final Weight as a function of:
+
+- Sleep Quality
+
+- Physical Activity Level
+
+- Stress Level
+
+- Duration (weeks)
+```{r}
+health_clean <- health %>%
+  mutate(
+    `Sleep Quality` = as.factor(`Sleep Quality`),
+    `Physical Activity Level` = as.factor(`Physical Activity Level`)
+  )
+
+# Run the linear model
+model <- lm(
+  `Final Weight (lbs)` ~ `Sleep Quality` + `Physical Activity Level` + `Stress Level` + `Duration (weeks)`,
+  data = health_clean
+)
+
+# View summary
+summary(model)
+```
+
+
